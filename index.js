@@ -10,6 +10,15 @@ require('dotenv').config()
 app.use(express.json())
 app.use(cors({origin:true}))
 
+//mongodb connection with mongoose
+const uri=`mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.0qedn.mongodb.net/parts-manufacturer?retryWrites=true&w=majority`
+
+const main=async()=>{
+    await mongoose.connect(uri)
+    console.log('Connected')
+}
+main().catch(err=>console.log(err))
+
 //initial routing
 app.get('/',async(req,res)=>{
     res.send('Welcome to manufacturer website')
