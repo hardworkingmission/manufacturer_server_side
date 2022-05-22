@@ -30,7 +30,12 @@ const main=async()=>{
         const parts= await Parts.find({})
         res.send(parts)
     })
-    
+    app.get('/partsItemById/:id',async(req,res)=>{
+        const id=req.params.id
+        const result= await Parts.findOne({_id:id})
+        res.send(result)
+    })
+
     console.log('Connected')
 }
 main().catch(err=>console.log(err))
