@@ -15,6 +15,22 @@ const uri=`mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@clust
 
 const main=async()=>{
     await mongoose.connect(uri)
+    const partsSchema=mongoose.Schema({
+        name:String,
+        img:String,
+        description:String,
+        minQuantity:Number,
+        availableQuantity:Number,
+        price:Number
+    })
+    const Parts=mongoose.model('Part',partsSchema)
+
+    //get all parts
+    app.get('/parts',async(req,res)=>{
+        const parts= await Parts.find({})
+        res.send(parts)
+    })
+    
     console.log('Connected')
 }
 main().catch(err=>console.log(err))
