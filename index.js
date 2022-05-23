@@ -1,6 +1,7 @@
 const express=require('express')
 const app=express()
 const jwt=require('jsonwebtoken')
+const {verifyToken}=require('./verifyToken')
 const cors=require('cors')
 const mongoose=require('mongoose')
 const port=process.env.PORT||5000
@@ -15,7 +16,7 @@ const uri=`mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@clust
 
 const main=async()=>{
     await mongoose.connect(uri)
-    const partsSchema=mongoose.Schema({
+    const partsSchema= new mongoose.Schema({
         name:String,
         img:String,
         description:String,
@@ -23,7 +24,7 @@ const main=async()=>{
         availableQuantity:Number,
         price:Number
     })
-    const orderSchema=mongoose.Schema({
+    const orderSchema=new mongoose.Schema({
         name: String,
         email: String,
         phone: String,
@@ -35,8 +36,24 @@ const main=async()=>{
         img:String
 
     })
-    const Parts=mongoose.model('Part',partsSchema)
-    const Order=mongoose.model('Order',orderSchema)
+    const userSchema= new mongoose.Schema({
+        name:String,
+        email:String,
+        role:String
+
+    })
+    const Parts=new mongoose.model('Part',partsSchema)
+    const Order= new mongoose.model('Order',orderSchema)
+    const User= new mongoose.model('User',userSchema)
+
+    //create or update a user
+    app.put('/user/:email',async(req,res)=>{
+        const email=req.params.email
+        const user=req.body
+        const newUser = await User.updateOne({email:email},{$set:{email:user.email,name:user.name}},{upsert:true})
+        const token= jwt.sign({email:email},process.env.ACCESS_SECRET,{expiresIn:'5d'})
+        res.send({token})
+    })
 
     //get all parts
     app.get('/parts',async(req,res)=>{
@@ -51,15 +68,6 @@ const main=async()=>{
         res.send(result)
     })
 
-    //make order
-    app.post('/order',async(req,res)=>{
-        const order=req.body
-        const result=await new Order(order)
-        result.save()
-        res.send(result)
-        //console.log(order)
-    })
-
     //update quantity
     app.patch('/parts/:id',async(req,res)=>{
         const id=req.params.id
@@ -68,12 +76,30 @@ const main=async()=>{
         res.send(result)
     })
 
+
+     //make order
+     app.post('/order',async(req,res)=>{
+        const order=req.body
+        const result=await new Order(order)
+        result.save()
+        res.send(result)
+        //console.log(order)
+    })
+
     //get order by for logged in user
-    app.get('/orders',async(req,res)=>{
+    app.get('/orders',verifyToken,async(req,res)=>{
         const user=req.query.user
         const result= await Order.find({email:user})
         res.send(result)
         //console.log(user)
+    })
+
+    //delete a order
+    app.delete('/deleteOrder/:id',async(req,res)=>{
+        const id=req.params.id
+        const result= await Order.deleteOne({_id:id})
+        console.log(id)
+        res.send(result)
     })
 
     console.log('Connected')
