@@ -7,6 +7,8 @@ const mongoose=require('mongoose')
 const port=process.env.PORT||5000
 require('dotenv').config()
 
+const stripe = require("stripe")(process.env.SECRET_KEY);
+// 'sk_test_51L0fVGJAuQhoLxlY3QYc99FDERve5o6XpDCzCOV47CfTip32QVgasz2GudZuCCFqc1vNLApKwlp7xJvfM4Bfk2QW00WgmwdqNF'
 
 app.use(express.json())
 app.use(cors({origin:true}))
@@ -33,7 +35,9 @@ const main=async()=>{
         totalPrice:Number,
         partsName:String,
         purchaseQuantity: Number,
-        img:String
+        img:String,
+        paid:Boolean,
+        transactionId:String
 
     })
     const userSchema= new mongoose.Schema({
@@ -42,9 +46,14 @@ const main=async()=>{
         role:String
 
     })
+    const paymentScema= new mongoose.Schema({
+        order:String,
+        transactionId:String
+    })
     const Parts=new mongoose.model('Part',partsSchema)
     const Order= new mongoose.model('Order',orderSchema)
     const User= new mongoose.model('User',userSchema)
+    const Payment= new mongoose.model('Payment',paymentScema)
 
     //create or update a user
     app.put('/user/:email',async(req,res)=>{
@@ -78,7 +87,7 @@ const main=async()=>{
 
 
      //make order
-     app.post('/order',async(req,res)=>{
+     app.post('/order',verifyToken,async(req,res)=>{
         const order=req.body
         const result=await new Order(order)
         result.save()
@@ -93,14 +102,46 @@ const main=async()=>{
         res.send(result)
         //console.log(user)
     })
+    //get order by id
+    app.get('/order/:id',verifyToken,async(req,res)=>{
+        const id=req.params.id
+        const result= await Order.findOne({_id:id})
+        res.send(result)
+    })
+
+    //update order
+    app.patch('/order/:id',verifyToken,async(req,res)=>{
+        const id=req.params.id
+        const paymentInfo=req.body
+        const result= await new Payment(paymentInfo)
+        result.save()
+        const order= await Order.findOneAndUpdate({_id:id},{$set:{paid:true,transactionId:paymentInfo?.transactionId}})
+        res.send(order)
+        console.log('Patch',id,paymentInfo)
+    })
 
     //delete a order
-    app.delete('/deleteOrder/:id',async(req,res)=>{
+    app.delete('/deleteOrder/:id',verifyToken,async(req,res)=>{
         const id=req.params.id
         const result= await Order.deleteOne({_id:id})
         console.log(id)
         res.send(result)
     })
+
+    //paymant metho integration
+    app.post("/create-payment-intent",verifyToken, async (req, res) => {
+        const price  = req.body.price;
+        const paymentIntent = await stripe.paymentIntents.create({
+          amount: 100*parseInt(price),
+          currency: "usd",
+          payment_method_types: ["card"]
+        });
+      
+        res.send({
+          clientSecret: paymentIntent.client_secret,
+        });
+      });
+      
 
     console.log('Connected')
 }

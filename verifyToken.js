@@ -11,9 +11,11 @@ const verifyToken = (req,res,next) => {
             if(err){
                 return res.status(401).send({message:'Access Forbidden'})
             }
-            return req.decoded=decoded
+            req.decoded=decoded
             next()
+            
         })
+        
 
     }else{
         return res.status(403).send({message:'Unauthorized access'})
