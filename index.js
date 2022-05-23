@@ -57,6 +57,14 @@ const main=async()=>{
         console.log(order)
     })
 
+    //update quantity
+    app.patch('/parts/:id',async(req,res)=>{
+        const id=req.params.id
+        const quantity=req.body
+        const result= await Parts.updateOne({_id:id},{$set:quantity})
+        res.send(result)
+    })
+
     console.log('Connected')
 }
 main().catch(err=>console.log(err))
