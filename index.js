@@ -1,6 +1,8 @@
 const express=require('express')
 const app=express()
 const jwt=require('jsonwebtoken')
+const {sendOrderConfirmationEmail}=require('./sendOrderConfirmationEmail')
+const {sendPaymentConfirmationEmail}=require('./sendPaymentConfirmationEmail')
 const {verifyToken}=require('./verifyToken')
 const cors=require('cors')
 const mongoose=require('mongoose')
@@ -92,6 +94,7 @@ const main=async()=>{
         const result=await new Order(order)
         result.save()
         res.send(result)
+        sendOrderConfirmationEmail(result)
         //console.log(order)
     })
 
@@ -116,7 +119,9 @@ const main=async()=>{
         const result= await new Payment(paymentInfo)
         result.save()
         const order= await Order.findOneAndUpdate({_id:id},{$set:{paid:true,transactionId:paymentInfo?.transactionId}})
+        sendPaymentConfirmationEmail(order)
         res.send(order)
+        
         console.log('Patch',id,paymentInfo)
     })
 
