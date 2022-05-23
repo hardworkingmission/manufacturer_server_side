@@ -29,7 +29,10 @@ const main=async()=>{
         phone: String,
         address: String,
         partsId: String,
-        purchaseQuantity: Number
+        totalPrice:Number,
+        partsName:String,
+        purchaseQuantity: Number,
+        img:String
 
     })
     const Parts=mongoose.model('Part',partsSchema)
@@ -54,7 +57,7 @@ const main=async()=>{
         const result=await new Order(order)
         result.save()
         res.send(result)
-        console.log(order)
+        //console.log(order)
     })
 
     //update quantity
@@ -63,6 +66,14 @@ const main=async()=>{
         const quantity=req.body
         const result= await Parts.updateOne({_id:id},{$set:quantity})
         res.send(result)
+    })
+
+    //get order by for logged in user
+    app.get('/orders',async(req,res)=>{
+        const user=req.query.user
+        const result= await Order.find({email:user})
+        res.send(result)
+        //console.log(user)
     })
 
     console.log('Connected')
