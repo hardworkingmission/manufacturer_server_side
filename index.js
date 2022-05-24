@@ -79,7 +79,7 @@ const main=async()=>{
     app.get('/admin/:email',verifyToken,async(req,res)=>{
         const email= req.params.email
         const user= await User.findOne({email})
-        if(user.role==='admin'){
+        if(user?.role==='admin'){
             res.send({admin:true})
         }else{
             res.send({admin:false})
@@ -109,11 +109,20 @@ const main=async()=>{
         res.send(result)
     })
 
+    //parts creation
+    app.post('/parts',async(req,res)=>{
+        const partsInfo=req.body
+        const result= await new Parts(partsInfo)
+        result.save()
+        res.send(result)
+    })
+
     //update quantity
     app.patch('/parts/:id',async(req,res)=>{
         const id=req.params.id
         const quantity=req.body
-        const result= await Parts.updateOne({_id:id},{$set:quantity})
+        console.log(quantity)
+        const result= await Parts.findOneAndUpdate({_id:id},{$set:quantity})
         res.send(result)
     })
 
