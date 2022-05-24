@@ -75,6 +75,19 @@ const main=async()=>{
     const Payment= new mongoose.model('Payment',paymentScema)
     const Review= new mongoose.model('Review',reviewSchema)
     const MyProfile= new mongoose.model('MyProfile',myProfileSchema)
+
+
+    //admin verify
+    const verifyAdmin=async(req,res,next)=>{
+        const decodedEmail=req.decoded.email
+        const user= await User.findOne({email:decodedEmail})
+        if(user?.role==='admin'){
+            next()
+        }else{
+            res.status(403).send({message:'Unauthorized access'})
+        }
+
+    }
     //get admin user by id
     app.get('/admin/:email',verifyToken,async(req,res)=>{
         const email= req.params.email
@@ -103,17 +116,31 @@ const main=async()=>{
     })
 
     //get single item
-    app.get('/partsItemById/:id',async(req,res)=>{
+    app.get('/partsItemById/:id',verifyToken,async(req,res)=>{
         const id=req.params.id
         const result= await Parts.findOne({_id:id})
         res.send(result)
     })
 
     //parts creation
-    app.post('/parts',async(req,res)=>{
+    app.post('/parts',verifyAdmin,async(req,res)=>{
         const partsInfo=req.body
         const result= await new Parts(partsInfo)
         result.save()
+        res.send(result)
+    })
+    //update parts
+    app.patch('/parts/:id',verifyToken,verifyAdmin,async(req,res)=>{
+        const id=req.params.id
+        const partsInfo=req.body
+        const result= await Parts.findOneAndUpdate({_id:id},{$set:partsInfo})
+        res.send(result)
+        console.log('in patch')
+    })
+    //delete a parts
+    app.delete('/deleteParts/:id',verifyToken,verifyAdmin,async(req,res)=>{
+        const id=req.params.id
+        const result = await Parts.deleteOne({_id:id})
         res.send(result)
     })
 
@@ -185,8 +212,8 @@ const main=async()=>{
 
     })
     // get profile
-    app.get('/myprofile',verifyToken,async(req,res)=>{
-        const email=req.query.email
+    app.get('/myprofile/:email',verifyToken,async(req,res)=>{
+        const email=req.params.email
         const result= await MyProfile.findOne({email})
         res.send(result)
 
