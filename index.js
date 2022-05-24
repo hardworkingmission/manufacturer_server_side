@@ -56,7 +56,8 @@ const main=async()=>{
         img:String,
         comment:String,
         ratings:String,
-        user:String
+        name:String,
+        address:String
 
     })
     const myProfileSchema= new mongoose.Schema({
@@ -150,10 +151,17 @@ const main=async()=>{
         console.log(id)
         res.send(result)
     })
-
+     //get reviews
+     app.get('/reviews',async(req,res)=>{
+         const reviews= await Review.find({})
+         res.send(reviews)
+     })
     //review creation
-    app.post('/review',async(req,res)=>{
-        res.send('review')
+    app.post('/review',verifyToken,async(req,res)=>{
+        const reviewInfo=req.body
+        const result= await new Review(reviewInfo)
+        result.save()
+        res.send(result)
 
     })
     // get profile
