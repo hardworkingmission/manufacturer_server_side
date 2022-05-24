@@ -75,15 +75,26 @@ const main=async()=>{
     const Payment= new mongoose.model('Payment',paymentScema)
     const Review= new mongoose.model('Review',reviewSchema)
     const MyProfile= new mongoose.model('MyProfile',myProfileSchema)
+    //get admin user by id
+    app.get('/admin/:email',verifyToken,async(req,res)=>{
+        const email= req.params.email
+        const user= await User.findOne({email})
+        if(user.role==='admin'){
+            res.send({admin:true})
+        }else{
+            res.send({admin:false})
+        }
+    })
 
     //create or update a user
     app.put('/user/:email',async(req,res)=>{
         const email=req.params.email
         const user=req.body
-        const newUser = await User.updateOne({email:email},{$set:{email:user.email,name:user.name}},{upsert:true})
+        const newUser = await User.findOneAndUpdate({email:email},{$set:{email:user.email,name:user.name}},{upsert:true})
         const token= jwt.sign({email:email},process.env.ACCESS_SECRET,{expiresIn:'5d'})
         res.send({token})
     })
+
 
     //get all parts
     app.get('/parts',async(req,res)=>{
