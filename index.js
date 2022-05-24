@@ -52,10 +52,28 @@ const main=async()=>{
         order:String,
         transactionId:String
     })
+    const reviewSchema= new mongoose.Schema({
+        img:String,
+        comment:String,
+        ratings:String,
+        user:String
+
+    })
+    const myProfileSchema= new mongoose.Schema({
+        img:String,
+        name:String,
+        email:String,
+        phone:String,
+        address:String,
+        socialMediaProfile:String
+    })
+
     const Parts=new mongoose.model('Part',partsSchema)
     const Order= new mongoose.model('Order',orderSchema)
     const User= new mongoose.model('User',userSchema)
     const Payment= new mongoose.model('Payment',paymentScema)
+    const Review= new mongoose.model('Review',reviewSchema)
+    const MyProfile= new mongoose.model('MyProfile',myProfileSchema)
 
     //create or update a user
     app.put('/user/:email',async(req,res)=>{
@@ -133,7 +151,35 @@ const main=async()=>{
         res.send(result)
     })
 
-    //paymant metho integration
+    //review creation
+    app.post('/review',async(req,res)=>{
+        res.send('review')
+
+    })
+    // get profile
+    app.get('/myprofile',verifyToken,async(req,res)=>{
+        const email=req.query.email
+        const result= await MyProfile.findOne({email})
+        res.send(result)
+
+    })
+    //profile creation
+    app.post('/myprofile',verifyToken,async(req,res)=>{
+        const profileInfo=req.body
+        const result= await new MyProfile(profileInfo)
+        result.save()
+        res.json(result)
+
+    })
+    //profile update
+    app.put('/updateprofile/:email',verifyToken,async(req,res)=>{
+        const email=req.params.email
+        const profileInfo=req.body
+        const result= await MyProfile.findOneAndUpdate({email},{$set:profileInfo},{upsert:true})
+        res.send(result)
+    })
+
+    //paymant method integration
     app.post("/create-payment-intent",verifyToken, async (req, res) => {
         const price  = req.body.price;
         const paymentIntent = await stripe.paymentIntents.create({
