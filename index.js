@@ -190,15 +190,17 @@ const main=async()=>{
     //get order by for logged in user
     app.get('/orders',verifyToken,async(req,res)=>{
         const user=req.query.user
+        console.log(req.decoded.email)
         const result= await Order.find({email:user})
         res.send(result)
         //console.log(user)
     })
     //get order by id
-    app.get('/order/:id',verifyToken,async(req,res)=>{
+    app.get('/orderById/:id',verifyToken,async(req,res)=>{
         const id=req.params.id
         const result= await Order.findOne({_id:id})
         res.send(result)
+        console.log('orderById')
     })
 
     //update order
