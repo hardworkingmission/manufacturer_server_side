@@ -108,6 +108,24 @@ const main=async()=>{
         res.send({token})
     })
 
+    //get all user by admin
+    app.get('/allusers',verifyToken,verifyAdmin,async(req,res)=>{
+        const result =await User.find({})
+        res.send(result)
+    })
+
+    //make Admin By Admin
+    app.patch('/makeAdminByAdmin/:id',verifyToken,verifyAdmin,async(req,res)=>{
+        const userId= req.params.id
+        const adminInfo= req.body
+        const decodedEmail=req.decoded.email
+        const user= await User.findOne({email:decodedEmail})
+        if(user.role==="admin"){
+            const result= await User.findOneAndUpdate({_id:userId},{$set:adminInfo})
+            res.send(result)
+        }
+    })
+
 
     //get all parts
     app.get('/parts',async(req,res)=>{
@@ -148,7 +166,7 @@ const main=async()=>{
     app.patch('/partsQuantity/:id',verifyToken,async(req,res)=>{
         const id=req.params.id
         const quantity=req.body
-        console.log(quantity)
+        //console.log(quantity)
         const result= await Parts.findOneAndUpdate({_id:id},{$set:quantity})
         res.send(result)
     })
@@ -201,7 +219,7 @@ const main=async()=>{
     app.delete('/deleteOrderByUser/:id',verifyToken,async(req,res)=>{
         const id=req.params.id
         const result= await Order.deleteOne({_id:id})
-        console.log(id)
+        //console.log(id)
         res.send(result)
     })
     
@@ -209,7 +227,7 @@ const main=async()=>{
     app.delete('/deleteOrderByAdmin/:id',verifyToken,verifyAdmin,async(req,res)=>{
         const id=req.params.id
         const result= await Order.deleteOne({_id:id})
-        console.log(id)
+        //console.log(id)
         res.send(result)
     })
 
