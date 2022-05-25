@@ -10,7 +10,6 @@ const port=process.env.PORT||5000
 require('dotenv').config()
 
 const stripe = require("stripe")(process.env.SECRET_KEY);
-// 'sk_test_51L0fVGJAuQhoLxlY3QYc99FDERve5o6XpDCzCOV47CfTip32QVgasz2GudZuCCFqc1vNLApKwlp7xJvfM4Bfk2QW00WgmwdqNF'
 
 app.use(express.json())
 app.use(cors({origin:true}))
@@ -247,10 +246,10 @@ const main=async()=>{
     // get profile
     app.get('/myprofile/:email',verifyToken,async(req,res)=>{
         const email=req.params.email
-        const decodedEmail=req.decoded.email
+        //const decodedEmail=req.decoded.email
         const result= await  MyProfile.findOne({email})
         res.send(result)
-        console.log('email',email,decodedEmail,result)
+        //console.log('email',email,decodedEmail,result)
 
     })
     //profile creation
@@ -265,6 +264,7 @@ const main=async()=>{
     app.put('/updateprofile/:email',verifyToken,async(req,res)=>{
         const email=req.params.email
         const profileInfo=req.body
+        console.log(profileInfo)
         const result= await MyProfile.findOneAndUpdate({email},{$set:profileInfo},{upsert:true})
         res.send(result)
     })
@@ -282,7 +282,6 @@ const main=async()=>{
           clientSecret: paymentIntent.client_secret,
         });
       });
-      
 
     console.log('Connected')
 }
