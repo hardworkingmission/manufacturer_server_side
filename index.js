@@ -38,6 +38,7 @@ const main=async()=>{
         purchaseQuantity: Number,
         img:String,
         paid:Boolean,
+        status:String,
         transactionId:String
 
     })
@@ -209,7 +210,7 @@ const main=async()=>{
         const paymentInfo=req.body
         const result= await new Payment(paymentInfo)
         result.save()
-        const order= await Order.findOneAndUpdate({_id:id},{$set:{paid:true,transactionId:paymentInfo?.transactionId}})
+        const order= await Order.findOneAndUpdate({_id:id},{$set:{status:paymentInfo?.status,paid:true,transactionId:paymentInfo?.transactionId}})
         sendPaymentConfirmationEmail(order)
         res.send(order)
         
