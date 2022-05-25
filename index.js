@@ -123,7 +123,7 @@ const main=async()=>{
     })
 
     //parts creation
-    app.post('/parts',verifyAdmin,async(req,res)=>{
+    app.post('/parts',verifyToken,verifyAdmin,async(req,res)=>{
         const partsInfo=req.body
         const result= await new Parts(partsInfo)
         result.save()
@@ -145,14 +145,20 @@ const main=async()=>{
     })
 
     //update quantity
-    app.patch('/parts/:id',async(req,res)=>{
+    app.patch('/partsQuantity/:id',verifyToken,async(req,res)=>{
         const id=req.params.id
         const quantity=req.body
         console.log(quantity)
         const result= await Parts.findOneAndUpdate({_id:id},{$set:quantity})
         res.send(result)
     })
-
+     
+    //get all orders
+    app.get('/allorders',verifyToken,verifyAdmin,async(req,res)=>{
+        const result= await Order.find({})
+        res.send(result)
+        //console.log('all orders')
+    })
 
      //make order
      app.post('/order',verifyToken,async(req,res)=>{
@@ -191,13 +197,22 @@ const main=async()=>{
         console.log('Patch',id,paymentInfo)
     })
 
-    //delete a order
-    app.delete('/deleteOrder/:id',verifyToken,async(req,res)=>{
+    //delete a order by user
+    app.delete('/deleteOrderByUser/:id',verifyToken,async(req,res)=>{
         const id=req.params.id
         const result= await Order.deleteOne({_id:id})
         console.log(id)
         res.send(result)
     })
+    
+    //delete a order by admin
+    app.delete('/deleteOrderByAdmin/:id',verifyToken,verifyAdmin,async(req,res)=>{
+        const id=req.params.id
+        const result= await Order.deleteOne({_id:id})
+        console.log(id)
+        res.send(result)
+    })
+
      //get reviews
      app.get('/reviews',async(req,res)=>{
          const reviews= await Review.find({})
@@ -214,8 +229,10 @@ const main=async()=>{
     // get profile
     app.get('/myprofile/:email',verifyToken,async(req,res)=>{
         const email=req.params.email
-        const result= await MyProfile.findOne({email})
+        const decodedEmail=req.decoded.email
+        const result= await  MyProfile.findOne({email})
         res.send(result)
+        console.log('email',email,decodedEmail,result)
 
     })
     //profile creation
