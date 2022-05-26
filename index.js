@@ -76,6 +76,17 @@ const main=async()=>{
     const Review= new mongoose.model('Review',reviewSchema)
     const MyProfile= new mongoose.model('MyProfile',myProfileSchema)
 
+     //general user
+     const verifyGeneralUser=async(req,res,next)=>{
+        const decodedEmail=req?.decoded.email
+        const user= await User.findOne({email:decodedEmail})
+        if(user?.role!=='admin'){
+            next()
+        }else{
+            res.status(403).send({message:'Unauthorized access'})
+        }
+
+     }
 
     //admin verify
     const verifyAdmin=async(req,res,next)=>{
@@ -192,7 +203,7 @@ const main=async()=>{
     })
 
     //get order by for logged in user
-    app.get('/orders',verifyToken,async(req,res)=>{
+    app.get('/orders',verifyToken,verifyGeneralUser,async(req,res)=>{
         const user=req.query.user
         const result= await Order.find({email:user})
         res.send(result)
@@ -217,7 +228,7 @@ const main=async()=>{
     })
 
     //delete a order by user
-    app.delete('/deleteOrderByUser/:id',verifyToken,async(req,res)=>{
+    app.delete('/deleteOrderByUser/:id',verifyToken,verifyGeneralUser,async(req,res)=>{
         const id=req.params.id
         const result= await Order.deleteOne({_id:id})
         res.send(result)
@@ -237,7 +248,7 @@ const main=async()=>{
      })
 
     //review creation
-    app.post('/review',verifyToken,async(req,res)=>{
+    app.post('/review',verifyToken,verifyGeneralUser,async(req,res)=>{
         const reviewInfo=req.body
         const result= await new Review(reviewInfo)
         result.save()
