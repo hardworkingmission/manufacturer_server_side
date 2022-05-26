@@ -126,7 +126,6 @@ const main=async()=>{
         }
     })
 
-
     //get all parts
     app.get('/parts',async(req,res)=>{
         const parts= await Parts.find({})
@@ -147,14 +146,15 @@ const main=async()=>{
         result.save()
         res.send(result)
     })
+
     //update parts
     app.patch('/parts/:id',verifyToken,verifyAdmin,async(req,res)=>{
         const id=req.params.id
         const partsInfo=req.body
         const result= await Parts.findOneAndUpdate({_id:id},{$set:partsInfo})
         res.send(result)
-        console.log('in patch')
     })
+
     //delete a parts
     app.delete('/deleteParts/:id',verifyToken,verifyAdmin,async(req,res)=>{
         const id=req.params.id
@@ -166,7 +166,6 @@ const main=async()=>{
     app.patch('/partsQuantity/:id',verifyToken,async(req,res)=>{
         const id=req.params.id
         const quantity=req.body
-        //console.log(quantity)
         const result= await Parts.findOneAndUpdate({_id:id},{$set:quantity})
         res.send(result)
     })
@@ -175,7 +174,12 @@ const main=async()=>{
     app.get('/allorders',verifyToken,verifyAdmin,async(req,res)=>{
         const result= await Order.find({})
         res.send(result)
-        //console.log('all orders')
+    })
+    
+    //get all orders public
+    app.get('/allorderspublic',async(req,res)=>{
+        const result= await Order.find({})
+        res.send(result)
     })
 
      //make order
@@ -185,23 +189,20 @@ const main=async()=>{
         result.save()
         res.send(result)
         sendOrderConfirmationEmail(result)
-        //console.log(order)
     })
 
     //get order by for logged in user
     app.get('/orders',verifyToken,async(req,res)=>{
         const user=req.query.user
-        console.log(req.decoded.email)
         const result= await Order.find({email:user})
         res.send(result)
-        //console.log(user)
     })
+
     //get order by id
     app.get('/orderById/:id',verifyToken,async(req,res)=>{
         const id=req.params.id
         const result= await Order.findOne({_id:id})
         res.send(result)
-        console.log('orderById')
     })
 
     //update order
@@ -213,15 +214,12 @@ const main=async()=>{
         const order= await Order.findOneAndUpdate({_id:id},{$set:{status:paymentInfo?.status,paid:true,transactionId:paymentInfo?.transactionId}})
         sendPaymentConfirmationEmail(order)
         res.send(order)
-        
-        console.log('Patch',id,paymentInfo)
     })
 
     //delete a order by user
     app.delete('/deleteOrderByUser/:id',verifyToken,async(req,res)=>{
         const id=req.params.id
         const result= await Order.deleteOne({_id:id})
-        //console.log(id)
         res.send(result)
     })
     
@@ -229,7 +227,6 @@ const main=async()=>{
     app.delete('/deleteOrderByAdmin/:id',verifyToken,verifyAdmin,async(req,res)=>{
         const id=req.params.id
         const result= await Order.deleteOne({_id:id})
-        //console.log(id)
         res.send(result)
     })
 
@@ -238,6 +235,7 @@ const main=async()=>{
          const reviews= await Review.find({})
          res.send(reviews)
      })
+
     //review creation
     app.post('/review',verifyToken,async(req,res)=>{
         const reviewInfo=req.body
@@ -246,15 +244,15 @@ const main=async()=>{
         res.send(result)
 
     })
+
     // get profile
     app.get('/myprofile/:email',verifyToken,async(req,res)=>{
         const email=req.params.email
-        //const decodedEmail=req.decoded.email
         const result= await  MyProfile.findOne({email})
         res.send(result)
-        //console.log('email',email,decodedEmail,result)
 
     })
+
     //profile creation
     app.post('/myprofile',verifyToken,async(req,res)=>{
         const profileInfo=req.body
@@ -263,11 +261,11 @@ const main=async()=>{
         res.json(result)
 
     })
+
     //profile update
     app.put('/updateprofile/:email',verifyToken,async(req,res)=>{
         const email=req.params.email
         const profileInfo=req.body
-        console.log(profileInfo)
         const result= await MyProfile.findOneAndUpdate({email},{$set:profileInfo},{upsert:true})
         res.send(result)
     })
